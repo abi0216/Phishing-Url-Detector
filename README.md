@@ -33,6 +33,8 @@ This project follows the **Model-View-Controller (MVC)** pattern, which is the i
 
 ![image alt](https://github.com/abi0216/Phishing-Url-Detector/blob/dce9e73cb528862e98984336eb70197c08ee772e/Screenshot%202026-05-23%20194441.png)
 
+![image alt](https://github.com/abi0216/Phishing-Url-Detector/blob/33609b7d2611c45bbe82df936b2573a85efef873/Screenshot%202026-05-23%20194458.png)
+
 
 
 
