@@ -25,6 +25,46 @@ This project follows the **Model-View-Controller (MVC)** pattern, which is the i
 3.  **Collaboration**: Standardized structures allow multiple developers to work on different parts of the app simultaneously.
 4.  **Security**: sensitive information (like API keys) is centralized in `.env` and `config/` rather than hardcoded in files.
 
+![image alt](https://github.com/abi0216/Phishing-Url-Detector/blob/e501147152381e35d558c74002efcc6cafe26ce3/Screenshot%202026-05-23%20191908.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## 🛠️ Getting Started
 
 1.  Clone the project.
