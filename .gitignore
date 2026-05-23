@@ -1,0 +1,70 @@
+# Python / Flask compiler cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+bin/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments & dependencies
+.venv/
+venv/
+ENV/
+env/
+ipython_log.txt
+
+# Local Environment Variables & Secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE & Editor specific settings
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo
+
+# Diagnostic logs & cache
+logs/
+*.log
+cache/
+
+# Testing & telemetries
+.pytest_cache/
+.benchmarks/
+.coverage
+htmlcov/
+.cov/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+
+# Datasets & large backups (Optional but recommended)
+datasets/*.csv
+datasets/*.xlsx
+
+# Git LFS or ignored large models (Optional - phishing_model.pkl is > 70MB)
+# models/phishing_model.pkl

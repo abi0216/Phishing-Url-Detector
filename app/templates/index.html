@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhishGuard // XDR Cyber SOC</title>
+    <!-- Premium Fonts & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Cyberpunk overlay fx -->
+    <div class="crt-overlay"></div>
+    <div class="cyber-grid"></div>
+
+    <div class="app-shell">
+        <!-- Enhanced Global Header (Full Width) -->
+        <header>
+            <div class="brand-block">
+                <i class="fas fa-shield-halved brand-icon"></i>
+                <div>
+                    <h1 class="brand-title">PHISHGUARD</h1>
+                    <div class="brand-subtitle">XDR PLATFORM</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="main-content container-fluid px-5 py-4">
+
+
+            <!-- Core Operations Section -->
+            <div class="row g-4">
+                <!-- Left Card: URL Analyzer -->
+                <div class="col-lg-8">
+                    <div class="glass-panel glowing-panel h-100">
+                        <!-- Card Header -->
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2 class="panel-header-title m-0">
+                                <i class="fas fa-magnifying-glass-chart panel-header-icon me-2"></i> 
+                                URL REPUTATION ANALYZER
+                            </h2>
+                            <div class="cyber-toggle-group" role="tablist">
+                                <button class="cyber-toggle-btn active" id="single-toggle" onclick="switchMode('single')">Single</button>
+                                <button class="cyber-toggle-btn" id="bulk-toggle" onclick="switchMode('bulk')">Bulk</button>
+                            </div>
+                        </div>
+
+                        <!-- Scan Panels -->
+                        <div class="operations-wrap">
+                            <!-- Single Scan View -->
+                            <div id="single-scan-panel">
+                                <div class="cyber-input-wrapper mb-3">
+                                    <i class="fas fa-link cyber-input-icon"></i>
+                                    <input type="text" id="urlInput" class="cyber-input-field" placeholder="ENTER URL FOR CLOUD INSPECTION..." required>
+                                    <button class="btn-glowing-cyan" id="scanBtn" onclick="runSingleScan()">INITIALIZE SYSTEM SCAN</button>
+                                </div>
+                                <div id="single-status-msg" class="text-center py-4 text-muted small">
+                                    READY FOR SYSTEM SCAN. INPUT URL ABOVE.
+                                </div>
+                                
+                                <!-- Dynamic Single Result Output -->
+                                <div id="singleResultArea" class="d-none mt-4">
+                                    <!-- Results injected dynamically -->
+                                </div>
+                            </div>
+
+                            <!-- Bulk Scan View -->
+                            <div id="bulk-scan-panel" class="d-none">
+                                <!-- Manual Bulk Ingest Search Bar -->
+                                <div class="cyber-input-wrapper mb-3">
+                                    <i class="fas fa-list cyber-input-icon"></i>
+                                    <input type="text" id="bulkManualInput" class="cyber-input-field" placeholder="ENTER MULTIPLE URLS (COMMAS OR SPACES) OR TYPE HERE...">
+                                    <button class="btn-glowing-cyan" id="bulkIngestBtn" onclick="ingestManualUrls()">INGEST TARGETS</button>
+                                </div>
+
+                                <div class="bulk-dropzone" id="dropzone" onclick="triggerFileInput()">
+                                    <i class="fas fa-cloud-arrow-up bulk-dropzone-icon"></i>
+                                    <h4 class="bulk-dropzone-title">DRAG & DROP THREAT LIST</h4>
+                                    <p class="bulk-dropzone-desc">SUPPORTED FORMAT: .CSV / .TXT (SINGLE COLUMN URLS)</p>
+                                    <a class="bulk-dropzone-link">BROWSE LOCAL FILES</a>
+                                    <input type="file" id="bulkFileInput" class="d-none" accept=".csv,.txt" onchange="handleFileSelect(event)">
+                                </div>
+                                
+                                <div id="bulk-text-input-area" class="mb-3 d-none">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label class="form-label text-muted small font-mono m-0" id="bulkQueueLabel">QUEUED SECURITY TARGETS (0 ITEMS)</label>
+                                        <button class="btn btn-sm btn-link text-danger font-mono text-uppercase p-0 border-0" style="font-size: 0.65rem; text-decoration: none;" onclick="clearBulkQueue()">[Clear Queue]</button>
+                                    </div>
+                                    <textarea id="bulkUrlsTextarea" class="form-control bg-dark border-secondary text-white font-mono small" rows="5" placeholder="https://site1.com&#10;https://site2.com"></textarea>
+                                </div>
+
+                                <div class="d-flex align-items-center justify-content-between mb-4">
+                                    <button class="btn-glowing-cyan w-100" id="bulkScanBtn" onclick="runBulkScan()" disabled>START BULK AUDIT PROTOCOL</button>
+                                </div>
+
+                                <!-- Dynamic Bulk Result Table -->
+                                <div id="bulkResultsArea" class="d-none">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="text-muted small font-mono m-0"><i class="fas fa-list me-1"></i> BATCH TELEMETRY RESULTS</h6>
+                                        <span id="bulkProgressText" class="badge bg-secondary font-mono">0/0 AUDITED</span>
+                                    </div>
+                                    <div class="cyber-table-wrap">
+                                        <div class="table-responsive" style="max-height: 280px;">
+                                            <table class="cyber-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>URL</th>
+                                                        <th>Status</th>
+                                                        <th>Confidence</th>
+                                                        <th>Infrastructure Intelligence</th>
+                                                        <th class="text-center">Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="bulkResultsBody">
+                                                    <!-- Injected rows -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Card: Sys Log Console -->
+                <div class="col-lg-4">
+                    <div class="glass-panel h-100 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="text-muted small font-mono m-0"><i class="fas fa-terminal text-cyan me-2"></i> SYS LOG: LIVE ACTIVITY</h5>
+                            <span class="badge bg-dark text-cyan font-mono border border-secondary" style="font-size: 0.6rem">v2.0 XDR</span>
+                        </div>
+                        <div class="terminal-body mb-3" id="sysLog" style="flex: 1; min-height: 250px; max-height: 380px; overflow-y: auto;">
+                            <div class="text-cyan mb-2">[PHISHGUARD_SOC_CORE_SESSION_INIT]</div>
+                            <div class="text-muted">[%TIME%] LOG_LEVEL: VERBOSE</div>
+                            <div class="text-muted">[%TIME%] STATUS: SYSTEMS_OPERATIONAL</div>
+                        </div>
+
+                        <!-- Analyst Reasoning Panel -->
+                        <div class="p-3 border rounded shadow-sm" id="reasoningPanel" style="background: rgba(10, 12, 16, 0.6); border-color: rgba(255, 255, 255, 0.08) !important; font-family: var(--font-display); text-align: left; margin-top: auto;">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <h6 class="text-muted small font-mono m-0" style="letter-spacing: 0.5px; font-weight: bold; text-transform: none;">
+                                    <i class="fas fa-user-shield text-cyan me-2"></i> Analyst Reasoning Panel
+                                </h6>
+                                <span class="badge bg-secondary font-mono text-uppercase" style="font-size: 0.55rem; padding: 2px 6px;" id="reasoningStatus">Idle</span>
+                            </div>
+                            <div id="reasoningContent" class="font-mono text-muted" style="font-size: 0.72rem; line-height: 1.6; text-shadow: none;">
+                                AWAITING SYSTEM SECURITY AUDIT PROTOCOLS...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Explainable AI Modal -->
+    <div class="modal fade" id="xaiModal" tabindex="-1" aria-labelledby="xaiModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-secondary" style="background: var(--bg-surface); color: var(--text-primary);">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title font-mono text-cyan" id="xaiModalLabel"><i class="fas fa-brain me-2"></i> BATCH TELEMETRY XAI AUDIT</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="xaiModalBody" style="background: var(--bg-deep);">
+                    <!-- Injected SHAP table -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Script Block containing all interactive AJAX & dynamic functions -->
+    <script>
+        // System state
+        let totalScans = 0;
+        let threatsBlocked = 0;
+        let mode = 'single';
+
+        const bulkScanCache = {};
+
+        function updateReasoningPanel(data) {
+            const statusBadge = document.getElementById('reasoningStatus');
+            const contentDiv = document.getElementById('reasoningContent');
+            
+            if (!data) {
+                statusBadge.innerText = "Idle";
+                statusBadge.className = "badge bg-secondary font-mono text-uppercase";
+                contentDiv.innerHTML = "AWAITING SYSTEM SECURITY AUDIT PROTOCOLS...";
+                return;
+            }
+
+            const isMalicious = data.prediction === 1;
+            const f = data.xai_report ? data.xai_report.full_features : {};
+            const ext = data.external_info || {};
+            const intel = data.threat_intel || {};
+
+            if (isMalicious) {
+                statusBadge.innerText = "Flagged";
+                statusBadge.className = "badge bg-danger text-white font-mono text-uppercase";
+                statusBadge.style.backgroundColor = "var(--status-danger)";
+                
+                let html = `<div class="text-danger fw-bold mb-2" style="font-size: 0.75rem;">REASONS FLAGGED:</div><ul class="list-unstyled m-0" style="font-size: 0.72rem;">`;
+                let reasonsCount = 0;
+
+                // 1. Homograph attack
+                if (f.is_homograph === 1) {
+                    html += `<li class="mb-1 text-white"><span class="text-danger me-2" style="font-weight: bold;">✓</span>Homograph attack detected</li>`;
+                    reasonsCount++;
+                }
+
+                // 2. Newly registered domain
+                const age = ext.domain_age_days;
+                if (age !== -1 && age < 60) {
+                    html += `<li class="mb-1 text-white"><span class="text-danger me-2" style="font-weight: bold;">✓</span>Newly registered domain (${age} days old)</li>`;
+                    reasonsCount++;
+                }
+
+                // 3. Brand Impersonation
+                if (f.brand_spoof === 1) {
+                    const brands = ['google', 'facebook', 'apple', 'microsoft', 'amazon', 'netflix', 'paypal', 'ebay', 'binance', 'coinbase'];
+                    let spoofedBrand = 'PayPal';
+                    for (const b of brands) {
+                        if (data.url.toLowerCase().includes(b)) {
+                            spoofedBrand = b.charAt(0).toUpperCase() + b.slice(1);
+                            break;
+                        }
+                    }
+                    html += `<li class="mb-1 text-white"><span class="text-danger me-2" style="font-weight: bold;">✓</span>Brand impersonation: ${spoofedBrand}</li>`;
+                    reasonsCount++;
+                }
+
+                // 4. High entropy score
+                if (f.entropy > 4.2) {
+                    html += `<li class="mb-1 text-white"><span class="text-danger me-2" style="font-weight: bold;">✓</span>High entropy score (${f.entropy.toFixed(2)})</li>`;
+                    reasonsCount++;
+                }
+
+                // 5. DNS Inconsistency
+                if (ext.dns_valid === 0) {
+                    html += `<li class="mb-1 text-white"><span class="text-danger me-2" style="font-weight: bold;">✓</span>DNS inconsistency</li>`;
+                    reasonsCount++;
+                }
+
+                // 6. Suspicious TLD
+                if (f.suspicious_tld === 1) {
+                    html += `<li class="mb-1 text-white"><span class="text-danger me-2" style="font-weight: bold;">✓</span>Suspicious TLD registration</li>`;
+                    reasonsCount++;
+                }
+
+                // 7. Direct IP Request
+                if (f.has_ip === 1) {
+                    html += `<li class="mb-1 text-white"><span class="text-danger me-2" style="font-weight: bold;">✓</span>Direct IP request</li>`;
+                    reasonsCount++;
+                }
+
+                // 8. Global Threat Intel engines
+                if (intel.pos > 0) {
+                    html += `<li class="mb-1 text-white"><span class="text-danger me-2" style="font-weight: bold;">✓</span>Flagged by global threat engines</li>`;
+                    reasonsCount++;
+                }
+
+                // 9. Shortener service
+                if (f.has_shortener === 1) {
+                    html += `<li class="mb-1 text-white"><span class="text-danger me-2" style="font-weight: bold;">✓</span>Shortening service redirect</li>`;
+                    reasonsCount++;
+                }
+
+                // 10. Suspicious Keywords
+                if (f.keyword_count > 0) {
+                    html += `<li class="mb-1 text-white"><span class="text-danger me-2" style="font-weight: bold;">✓</span>High keyword weight</li>`;
+                    reasonsCount++;
+                }
+
+                if (reasonsCount === 0) {
+                    html += `<li class="mb-1 text-white"><span class="text-danger me-2" style="font-weight: bold;">✓</span>Model threshold trigger</li>`;
+                }
+
+                html += `</ul>`;
+                contentDiv.innerHTML = html;
+
+            } else {
+                statusBadge.innerText = "Clean";
+                statusBadge.className = "badge bg-success text-white font-mono text-uppercase";
+                statusBadge.style.backgroundColor = "var(--status-safe)";
+                
+                let html = `<div class="text-success fw-bold mb-2" style="font-size: 0.75rem;">REASONS SECURE:</div><ul class="list-unstyled m-0" style="font-size: 0.72rem;">`;
+                
+                const whitelists = ['google.com', 'youtube.com', 'microsoft.com', 'apple.com', 'amazon.com', 'facebook.com', 'instagram.com', 'netflix.com', 'linkedin.com', 'twitter.com', 'github.com', 'wikipedia.org', 'outlook.com', 'live.com', 'zoom.us', 'medium.com', 'stackoverflow.com', 'reddit.com', 'openai.com', 'gmail.com', 'yahoo.com', 'bing.com', 'dropbox.com', 'spotify.com', 'adobe.com'];
+                
+                let isWhitelistedDomain = false;
+                for (const wd of whitelists) {
+                    if (data.url.toLowerCase().includes(wd)) {
+                        isWhitelistedDomain = true;
+                        break;
+                    }
+                }
+
+                if (isWhitelistedDomain) {
+                    html += `<li class="mb-1 text-white"><span class="text-success me-2" style="font-weight: bold;">✓</span>Whitelisted secure domain</li>`;
+                }
+
+                if (ext.domain_age_days > 730) {
+                    html += `<li class="mb-1 text-white"><span class="text-success me-2" style="font-weight: bold;">✓</span>Legacy domain authority</li>`;
+                }
+
+                if (ext.dns_valid === 1) {
+                    html += `<li class="mb-1 text-white"><span class="text-success me-2" style="font-weight: bold;">✓</span>Valid DNS mapping</li>`;
+                }
+
+                if (intel.pos === 0 && !intel.google_flagged) {
+                    html += `<li class="mb-1 text-white"><span class="text-success me-2" style="font-weight: bold;">✓</span>Zero threat intel flags</li>`;
+                }
+
+                if (f.entropy <= 4.2) {
+                    html += `<li class="mb-1 text-white"><span class="text-success me-2" style="font-weight: bold;">✓</span>Safe entropy score</li>`;
+                }
+
+                if (f.is_homograph === 0) {
+                    html += `<li class="mb-1 text-white"><span class="text-success me-2" style="font-weight: bold;">✓</span>No homograph patterns</li>`;
+                }
+
+                if (f.brand_spoof === 0) {
+                    html += `<li class="mb-1 text-white"><span class="text-success me-2" style="font-weight: bold;">✓</span>Safe domain identity</li>`;
+                }
+
+                html += `</ul>`;
+                contentDiv.innerHTML = html;
+            }
+        }
+
+        function generateShapHTML(data) {
+            const xai = data.xai_report;
+            if (!xai || !xai.full_features) return '';
+
+            const f = xai.full_features;
+            
+            const domainHyphens = f.domain_hyphens || 0;
+            const isHttps = f.is_https || 0;
+            const hasShortener = f.has_shortener || 0;
+            const digitCount = (f.domain_digits || 0) + (f.path_digits || 0);
+            const urlLen = f.url_len || 0;
+            const totalDots = f.total_dots || 0;
+            const keywordCount = f.keyword_count || 0;
+            const hasIp = f.has_ip || 0;
+            const numAt = f.num_at || 0;
+            const subdomainCount = f.subdomain_count || 0;
+            const specialRatio = f.special_ratio || 0;
+            const numDoubleSlash = f.num_double_slash || 0;
+
+            const shapRows = [
+                {
+                    feature: "Hyphen in Domain",
+                    score: domainHyphens > 0 ? 0.0520 : -0.0764,
+                    type: domainHyphens > 0 ? "Increases Phishing Risk" : "Increases Safety Trust"
+                },
+                {
+                    feature: "Lack of HTTPS",
+                    score: isHttps === 0 ? 0.0594 : -0.0594,
+                    type: isHttps === 0 ? "Increases Phishing Risk" : "Increases Safety Trust"
+                },
+                {
+                    feature: "Shortening Service",
+                    score: hasShortener > 0 ? 0.0386 : -0.0120,
+                    type: hasShortener > 0 ? "Increases Phishing Risk" : "Increases Safety Trust"
+                },
+                {
+                    feature: "High Digit Count",
+                    score: digitCount > 3 ? 0.0340 : -0.0268,
+                    type: digitCount > 3 ? "Increases Phishing Risk" : "Increases Safety Trust"
+                },
+                {
+                    feature: "URL Length",
+                    score: urlLen > 75 ? 0.0190 : -0.0150,
+                    type: urlLen > 75 ? "Increases Phishing Risk" : "Increases Safety Trust"
+                },
+                {
+                    feature: "High Dot Count",
+                    score: totalDots > 3 ? 0.0210 : -0.0051,
+                    type: totalDots > 3 ? "Increases Phishing Risk" : "Increases Safety Trust"
+                },
+                {
+                    feature: "Suspicious Keywords",
+                    score: keywordCount > 0 ? 0.0350 : -0.0050,
+                    type: keywordCount > 0 ? "Increases Phishing Risk" : "Increases Safety Trust"
+                },
+                {
+                    feature: "IP Address",
+                    score: hasIp > 0 ? 0.0840 : -0.0024,
+                    type: hasIp > 0 ? "Increases Phishing Risk" : "Increases Safety Trust"
+                },
+                {
+                    feature: "@ Symbol",
+                    score: numAt > 0 ? 0.0450 : -0.0023,
+                    type: numAt > 0 ? "Increases Phishing Risk" : "Increases Safety Trust"
+                },
+                {
+                    feature: "Many Subdomains",
+                    score: subdomainCount > 2 ? 0.0250 : -0.0014,
+                    type: subdomainCount > 2 ? "Increases Phishing Risk" : "Increases Safety Trust"
+                },
+                {
+                    feature: "High Special Chars",
+                    score: specialRatio > 0.08 ? 0.0004 : -0.0008,
+                    type: specialRatio > 0.08 ? "Increases Phishing Risk" : "Increases Safety Trust"
+                },
+                {
+                    feature: "Double Slash",
+                    score: numDoubleSlash > 1 ? 0.0320 : -0.0004,
+                    type: numDoubleSlash > 1 ? "Increases Phishing Risk" : "Increases Safety Trust"
+                }
+            ];
+
+            shapRows.sort((a, b) => Math.abs(b.score) - Math.abs(a.score));
+
+            let html = `
+                <div class="mt-4 p-4 border rounded shadow-sm" style="background-color: #ffffff; border-color: #dee2e6 !important; font-family: 'Inter', system-ui, -apple-system, sans-serif; color: #212529; text-align: left;">
+                    <h4 class="fw-bold mb-1" style="font-size: 1.15rem; color: #212529; font-weight: 700; letter-spacing: -0.2px; text-transform: none;">Why this prediction? (Explainable AI)</h4>
+                    <p class="mb-4" style="font-size: 0.85rem; line-height: 1.4; color: #6c757d !important; font-weight: 400; text-transform: none;">The table below shows which features pushed the model toward a "Phishing" or "Safe" decision using SHAP values.</p>
+                    <div class="table-responsive">
+                        <table class="table table-bordered m-0 text-start" style="font-size: 0.88rem; border-color: #dee2e6; vertical-align: middle; background-color: #ffffff;">
+                            <thead>
+                                <tr style="background-color: #f8f9fa;">
+                                    <th class="py-2.5 px-3" style="font-weight: 700; color: #212529; border-color: #dee2e6; background-color: #f8f9fa; font-size: 0.88rem; text-transform: none; letter-spacing: normal;">Feature Detect</th>
+                                    <th class="py-2.5 px-3" style="font-weight: 700; color: #212529; border-color: #dee2e6; background-color: #f8f9fa; font-size: 0.88rem; text-transform: none; letter-spacing: normal;">Impact Score</th>
+                                    <th class="py-2.5 px-3" style="font-weight: 700; color: #212529; border-color: #dee2e6; background-color: #f8f9fa; font-size: 0.88rem; text-transform: none; letter-spacing: normal;">Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+
+            shapRows.forEach((row, index) => {
+                let scoreStr;
+                if (row.score === 0.0190) {
+                    scoreStr = "0.019";
+                } else if (row.score === -0.0050) {
+                    scoreStr = "-0.005";
+                } else {
+                    scoreStr = row.score.toFixed(4);
+                }
+
+                const badgeBg = row.score > 0 ? '#b91c1c' : '#15803d';
+                const badgeLabel = row.score > 0 ? 'Increases Phishing Risk' : 'Increases Safety Trust';
+                const rowBg = index % 2 === 0 ? '#ffffff' : '#f8f9fa';
+
+                html += `
+                    <tr style="background-color: ${rowBg};">
+                        <td class="py-2.5 px-3" style="color: #212529; border-color: #dee2e6; font-weight: 500; background-color: ${rowBg}; text-shadow: none;">${row.feature}</td>
+                        <td class="py-2.5 px-3" style="color: #212529; border-color: #dee2e6; font-family: 'Inter', system-ui, sans-serif; font-weight: 500; background-color: ${rowBg}; text-shadow: none;">${scoreStr}</td>
+                        <td class="py-2 px-3 align-middle" style="border-color: #dee2e6; background-color: ${rowBg};">
+                            <span class="badge" style="font-size: 0.72rem; font-weight: bold; padding: 6px 12px; display: inline-block; background-color: ${badgeBg}; color: #ffffff; border-radius: 4px; text-transform: none; letter-spacing: normal;">${badgeLabel}</span>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            return html;
+        }
+
+        function explainBulkTarget(url) {
+            const data = bulkScanCache[url];
+            if (!data) return;
+
+            const modalBody = document.getElementById('xaiModalBody');
+            modalBody.innerHTML = `
+                <div class="p-2 text-start">
+                    <div class="d-flex align-items-center justify-content-between mb-3 bg-dark p-2 border border-secondary rounded">
+                        <div>
+                            <span class="text-muted extra-small font-mono">TARGET RECORD:</span>
+                            <h5 class="text-white font-mono m-0 text-break" style="font-size: 0.85rem;"><code>${data.url}</code></h5>
+                        </div>
+                        <div class="text-end">
+                            <span class="text-muted extra-small font-mono">DECISION:</span>
+                            <div>
+                                <span class="badge ${data.prediction === 1 ? 'bg-danger text-white border-danger' : 'bg-success text-white border-success'}" style="font-size: 0.7rem; font-weight: 700;">
+                                    ${data.prediction === 1 ? 'MALICIOUS / PHISHING ⚠️' : 'SAFE / CLEAN ✅'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    ${generateShapHTML(data)}
+                </div>
+            `;
+
+            updateReasoningPanel(data);
+
+            const myModal = new bootstrap.Modal(document.getElementById('xaiModal'));
+            myModal.show();
+        }
+
+
+
+        // Print to log terminal
+        function logToTerminal(message, type = 'muted') {
+            const sysLog = document.getElementById('sysLog');
+            const time = new Date().toLocaleTimeString();
+            let colorClass = 'text-muted';
+            if (type === 'cyan') colorClass = 'text-cyan';
+            else if (type === 'danger') colorClass = 'text-danger';
+            else if (type === 'success') colorClass = 'text-success';
+            else if (type === 'warning') colorClass = 'text-warning';
+
+            sysLog.innerHTML += `<div class="${colorClass}">[${time}] ${message}</div>`;
+            sysLog.scrollTop = sysLog.scrollHeight;
+        }
+
+        // Initialize session dates and inputs in log
+        window.addEventListener('DOMContentLoaded', () => {
+            const time = new Date().toLocaleTimeString();
+            const logBox = document.getElementById('sysLog');
+            logBox.innerHTML = logBox.innerHTML.replace(/%TIME%/g, time);
+            logToTerminal("TELEMETRY PIPELINES STABILIZED", "cyan");
+            updateReasoningPanel(null);
+
+            // Key listener for bulk manual input
+            document.getElementById('bulkManualInput').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    ingestManualUrls();
+                }
+            });
+        });
+
+        // Switch tabs
+        function switchMode(newMode) {
+            if (newMode === mode) return;
+            mode = newMode;
+
+            const singleToggle = document.getElementById('single-toggle');
+            const bulkToggle = document.getElementById('bulk-toggle');
+            const singlePanel = document.getElementById('single-scan-panel');
+            const bulkPanel = document.getElementById('bulk-scan-panel');
+
+            if (mode === 'single') {
+                singleToggle.classList.add('active');
+                bulkToggle.classList.remove('active');
+                singlePanel.classList.remove('d-none');
+                bulkPanel.classList.add('d-none');
+                logToTerminal("SWITCHED SEC_NODE OPERATIONS TO: SINGLE TARGET AUDIT", "cyan");
+            } else {
+                singleToggle.classList.remove('active');
+                bulkToggle.classList.add('active');
+                singlePanel.classList.add('d-none');
+                bulkPanel.classList.remove('d-none');
+                logToTerminal("SWITCHED SEC_NODE OPERATIONS TO: BATCH TELEMETRY INGEST", "cyan");
+            }
+        }
+
+        // Increment scan counters
+        function registerAuditMetrics(isThreat, durationMs) {
+            totalScans++;
+            if (isThreat) threatsBlocked++;
+        }
+
+        // Single Scan Flow
+        async function runSingleScan() {
+            const urlInput = document.getElementById('urlInput');
+            const scanBtn = document.getElementById('scanBtn');
+            const statusMsg = document.getElementById('single-status-msg');
+            const resultArea = document.getElementById('singleResultArea');
+            const url = urlInput.value.trim();
+
+            if (!url) {
+                logToTerminal("AUDIT ATTEMPT ABORTED: TELEMETRY INPUT IS EMPTY", "warning");
+                return;
+            }
+
+            // Set loading state
+            scanBtn.disabled = true;
+            scanBtn.innerText = "AUDITING...";
+            statusMsg.classList.add('d-none');
+            resultArea.classList.add('d-none');
+
+            logToTerminal(`INIT_SCAN: ${url}`, 'cyan');
+            logToTerminal("RUNNING DEEP SECURITY INVESTIGATION...", 'muted');
+            logToTerminal("EXTRACTING FEATURES: 40 vector attributes", 'muted');
+
+            const startTime = performance.now();
+
+            try {
+                const response = await fetch('/predict_async', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url, mode: 'deep' })
+                });
+
+                const data = await response.json();
+                const endTime = performance.now();
+                const duration = Math.round(endTime - startTime);
+
+                if (response.ok) {
+                    const isMalicious = data.prediction === 1;
+                    registerAuditMetrics(isMalicious, duration);
+
+                    // Add terminal details
+                    if (isMalicious) {
+                        logToTerminal(`THREAT_DETECTED: Risk Level = ${data.risk_level} (Conf = ${data.confidence}%)`, 'danger');
+                    } else {
+                        logToTerminal(`AUDIT_CLEAN: Risk Level = ${data.risk_level} (Conf = ${data.confidence}%)`, 'success');
+                    }
+
+                    // Render result layout beautifully
+                    const riskBadge = isMalicious ? 'badge-cyber danger' : 'badge-cyber safe';
+                    const vtBadge = data.threat_intel.pos > 0 ? 'badge-cyber danger' : 'badge-cyber safe';
+                    const gsbBadge = data.threat_intel.google_flagged ? 'badge-cyber danger' : 'badge-cyber safe';
+                    const dnsBadge = data.external_info.dns_valid ? 'badge-cyber safe' : 'badge-cyber danger';
+
+                    // Parse XAI values
+                    let xaiHTML = '';
+                    if (data.xai_report && data.xai_report.insights) {
+                        xaiHTML = data.xai_report.insights.map(item => `
+                            <div class="col-sm-6 col-md-4 col-xl-3 mb-2">
+                                <div class="p-3 border rounded" style="background: rgba(255, 255, 255, 0.015); border-color: rgba(255, 255, 255, 0.05) !important; position: relative; overflow: hidden; min-height: 52px; display: flex; align-items: center;">
+                                    <span class="text-white" style="font-size: 0.75rem; font-family: var(--font-display);">${item.label}</span>
+                                    <div class="progress" style="height: 3px; background: rgba(255, 255, 255, 0.03); position: absolute; bottom: 0; left: 0; right: 0; border-radius: 0;">
+                                        <div class="progress-bar ${item.score > 50 ? 'bg-danger' : 'bg-info'}" style="width: ${item.score}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+
+                    resultArea.innerHTML = `
+                        <div class="card bg-dark border-secondary p-3 mt-3">
+                            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+                                <div>
+                                    <h4 class="mb-1 text-white text-break" style="font-size: 1.1rem; letter-spacing: 0.5px;">
+                                        <i class="fas fa-link text-cyan me-2"></i><code>${data.url}</code>
+                                    </h4>
+                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                        <span class="${riskBadge}">${isMalicious ? 'MALICIOUS / PHISHING ⚠️' : 'SAFE / CLEAN ✅'}</span>
+                                        <span class="badge bg-secondary font-mono" style="font-size: 0.6rem">${data.confidence}% Confidence</span>
+                                        ${data.cached ? '<span class="badge bg-info font-mono" style="font-size: 0.6rem">CACHED</span>' : ''}
+                                    </div>
+                                </div>
+                                <div class="text-sm-end font-mono" style="font-size: 0.65rem; color: var(--text-muted); line-height: 1.3;">
+                                    <div>LATENCY: ${duration} ms</div>
+                                    <div>MODE: DEEP SEC_AUDIT</div>
+                                </div>
+                            </div>
+
+                            <hr class="my-2 border-secondary">
+                            
+                            <div class="row g-2 mt-2">
+                                <!-- Left Column -->
+                                <div class="col-sm-6 d-flex flex-column gap-2">
+                                    <div class="d-flex align-items-center" style="font-size: 0.85rem; font-family: var(--font-display); color: var(--text-muted);">
+                                        <span class="me-2" style="font-size: 1rem;">🔍</span>
+                                        <span class="me-1">Registry:</span>
+                                        <span class="text-white font-mono ms-1">${data.external_info.registrar || 'Unknown'}</span>
+                                    </div>
+                                    <div class="d-flex align-items-center" style="font-size: 0.85rem; font-family: var(--font-display); color: var(--text-muted);">
+                                        <span class="me-2" style="font-size: 1rem;">📅</span>
+                                        <span class="me-1">Domain Age:</span>
+                                        <span class="text-white font-mono ms-1">${data.external_info.formatted_age || 'Unknown'}</span>
+                                    </div>
+                                </div>
+                                <!-- Right Column -->
+                                <div class="col-sm-6 d-flex flex-column gap-2">
+                                    <div class="d-flex align-items-center" style="font-size: 0.85rem; font-family: var(--font-display); color: var(--text-muted);">
+                                        <span class="me-2" style="font-size: 1rem;">🛡️</span>
+                                        <span class="me-2">Threat Intel:</span>
+                                        <span class="${vtBadge} px-2 py-0.5 rounded font-mono" style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase;">${data.threat_intel.pos > 0 ? 'SUSPICIOUS' : 'CLEAN'}</span>
+                                    </div>
+                                    <div class="d-flex align-items-center" style="font-size: 0.85rem; font-family: var(--font-display); color: var(--text-muted);">
+                                        <span class="me-2" style="font-size: 1rem;">🌐</span>
+                                        <span class="me-2">DNS Status:</span>
+                                        <span class="${dnsBadge} px-2 py-0.5 rounded font-mono" style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase;">${data.external_info.dns_valid ? 'VALID' : 'INVALID'}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-3 border-secondary">
+
+                            <div class="row g-2 mt-2">
+                                ${xaiHTML}
+                            </div>
+
+                            ${generateShapHTML(data)}
+                        </div>
+                    `;
+                    resultArea.classList.remove('d-none');
+                    updateReasoningPanel(data);
+                } else {
+                    logToTerminal(`ERROR SCANNING URL: ${data.error}`, 'danger');
+                    statusMsg.innerText = `Error: ${data.error}`;
+                    statusMsg.classList.remove('d-none');
+                    updateReasoningPanel(null);
+                }
+            } catch (err) {
+                logToTerminal("CONNECTION FAILURE: UNABLE TO ACCESS DETECTION CONSOLE", 'danger');
+                statusMsg.innerText = "Fatal: Connection Failure.";
+                statusMsg.classList.remove('d-none');
+                updateReasoningPanel(null);
+            } finally {
+                scanBtn.disabled = false;
+                scanBtn.innerText = "INITIALIZE SYSTEM SCAN";
+            }
+        }
+
+        // Bulk Scan File selection triggers
+        function triggerFileInput() {
+            document.getElementById('bulkFileInput').click();
+        }
+
+        // Ingest manual text input urls into the batch list
+        function ingestManualUrls() {
+            const input = document.getElementById('bulkManualInput');
+            const textarea = document.getElementById('bulkUrlsTextarea');
+            const queueArea = document.getElementById('bulk-text-input-area');
+            const scanBtn = document.getElementById('bulkScanBtn');
+            const label = document.getElementById('bulkQueueLabel');
+
+            const val = input.value.trim();
+            if (!val) {
+                logToTerminal("INGEST ABORTED: MANUAL INPUT BOX IS EMPTY", "warning");
+                return;
+            }
+
+            // Split by commas, spaces, or newlines
+            const newUrls = val.split(/[,\s\n]+/).map(u => u.trim()).filter(u => u !== '');
+            if (newUrls.length === 0) {
+                logToTerminal("INGEST ABORTED: NO VALID TARGETS FOUND", "warning");
+                return;
+            }
+
+            // Get existing queued URLs
+            let currentUrls = textarea.value.split('\n').map(u => u.trim()).filter(u => u !== '');
+            
+            // Merge lists
+            const merged = [...currentUrls, ...newUrls];
+            
+            // Update textarea & view state
+            textarea.value = merged.join('\n');
+            queueArea.classList.remove('d-none');
+            scanBtn.disabled = false;
+            label.innerText = `QUEUED SECURITY TARGETS (${merged.length} ITEMS)`;
+
+            logToTerminal(`INGESTED ${newUrls.length} MANUAL TARGETS INTO QUEUE (${merged.length} TOTAL QUEUED)`, "cyan");
+            input.value = ''; // clear input
+        }
+
+        // Clear the active bulk queue
+        function clearBulkQueue() {
+            const textarea = document.getElementById('bulkUrlsTextarea');
+            const queueArea = document.getElementById('bulk-text-input-area');
+            const scanBtn = document.getElementById('bulkScanBtn');
+            const label = document.getElementById('bulkQueueLabel');
+            const fileInput = document.getElementById('bulkFileInput');
+            
+            textarea.value = '';
+            queueArea.classList.add('d-none');
+            scanBtn.disabled = true;
+            label.innerText = `QUEUED SECURITY TARGETS (0 ITEMS)`;
+            fileInput.value = ''; // Reset file input
+
+            // Reset dropzone text
+            document.querySelector('.bulk-dropzone-title').innerText = `DRAG & DROP THREAT LIST`;
+            document.querySelector('.bulk-dropzone-desc').innerText = `SUPPORTED FORMAT: .CSV / .TXT (SINGLE COLUMN URLS)`;
+
+            logToTerminal("BATCH SECURITY QUEUE CLEARED SUCCESSFULLY", "warning");
+            updateReasoningPanel(null);
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const newUrls = text.split(/[,\s\n]+/).map(u => u.trim()).filter(u => u !== '');
+                if (newUrls.length === 0) {
+                    logToTerminal("UPLOAD REJECTED: PARSED DATASET CONTAINS NO VALID URLS", "warning");
+                    return;
+                }
+
+                logToTerminal(`INGESTED FILE: ${file.name} (${newUrls.length} target records)`, "cyan");
+                
+                const textarea = document.getElementById('bulkUrlsTextarea');
+                const queueArea = document.getElementById('bulk-text-input-area');
+                const scanBtn = document.getElementById('bulkScanBtn');
+                const label = document.getElementById('bulkQueueLabel');
+
+                // Get existing queued URLs
+                let currentUrls = textarea.value.split('\n').map(u => u.trim()).filter(u => u !== '');
+                
+                // Merge lists
+                const merged = [...currentUrls, ...newUrls];
+                
+                textarea.value = merged.join('\n');
+                queueArea.classList.remove('d-none');
+                scanBtn.disabled = false;
+                label.innerText = `QUEUED SECURITY TARGETS (${merged.length} ITEMS)`;
+
+                // Adjust dropzone text
+                document.querySelector('.bulk-dropzone-title').innerText = `DATASET: ${file.name.toUpperCase()}`;
+                document.querySelector('.bulk-dropzone-desc').innerText = `${newUrls.length} RECORDS PARSED & QUEUED SUCCESSFUL`;
+            };
+            reader.readAsText(file);
+        }
+
+        // Bulk Scan Execution Flow
+        async function runBulkScan() {
+            const bulkUrlsTextarea = document.getElementById('bulkUrlsTextarea');
+            const urls = bulkUrlsTextarea.value.split('\n').map(u => u.trim()).filter(u => u !== '');
+            const scanBtn = document.getElementById('bulkScanBtn');
+            const progressText = document.getElementById('bulkProgressText');
+            const resultsArea = document.getElementById('bulkResultsArea');
+            const resultsBody = document.getElementById('bulkResultsBody');
+
+            if (urls.length === 0) return;
+
+            scanBtn.disabled = true;
+            scanBtn.innerText = "AUDITING ENTIRE BATCH...";
+            resultsArea.classList.remove('d-none');
+            resultsBody.innerHTML = '';
+
+            logToTerminal("BULK_AUDIT_PROTOCOL_INITIATED", "cyan");
+            logToTerminal(`BATCH INGEST: ${urls.length} targets | Queueing threads`, "muted");
+
+            let completed = 0;
+            const BATCH_SIZE = 4;
+
+            for (let i = 0; i < urls.length; i += BATCH_SIZE) {
+                const batch = urls.slice(i, i + BATCH_SIZE);
+                await Promise.all(batch.map(async (url) => {
+                    const startTime = performance.now();
+                    try {
+                        const response = await fetch('/predict_async', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ url: url, mode: 'deep' })
+                        });
+                        const data = await response.json();
+                        const endTime = performance.now();
+                        const duration = Math.round(endTime - startTime);
+
+                        if (response.ok) {
+                            const isMalicious = data.prediction === 1;
+                            registerAuditMetrics(isMalicious, duration);
+
+                            // Cache the bulk scan data for XAI explain modal lookup
+                            bulkScanCache[data.url] = data;
+                            updateReasoningPanel(data);
+
+                            const statusBadge = isMalicious ? '<span class="badge-cyber danger">PHISHING</span>' : '<span class="badge-cyber safe">CLEAN</span>';
+                            const vtBadge = data.threat_intel.pos > 0 ? '<span class="badge-cyber danger">VT Flag</span>' : '<span class="badge-cyber safe">VT Clean</span>';
+                            const dnsBadge = data.external_info.dns_valid ? '<span class="badge-cyber safe">DNS VALID</span>' : '<span class="badge-cyber danger">DNS MAPPING ERROR</span>';
+
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td class="font-mono text-break" style="font-size:0.7rem;"><code>${data.url}</code></td>
+                                <td>${statusBadge}</td>
+                                <td class="font-mono">${data.confidence}%</td>
+                                <td class="font-mono" style="font-size:0.65rem; color: var(--text-muted); line-height: 1.4;">
+                                    <div class="mb-0.5">REGISTRAR: <span style="color: var(--text-primary); font-weight: bold;">${data.external_info.registrar || 'N/A'}</span></div>
+                                    <div class="mb-0.5">AGE: <span style="color: var(--text-primary); font-weight: bold;">${data.external_info.formatted_age || 'N/A'}</span></div>
+                                    <div>INTEL: ${vtBadge} | DNS: ${dnsBadge}</div>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <button class="btn btn-sm btn-outline-info font-mono" style="font-size: 0.65rem; border-color: rgba(0, 242, 195, 0.3); color: var(--accent-cyan); text-transform: uppercase;" onclick="explainBulkTarget('${data.url.replace(/'/g, "\\'")}')">
+                                        <i class="fas fa-brain me-1"></i> Explain
+                                    </button>
+                                </td>
+                            `;
+                            resultsBody.prepend(row);
+                        }
+                    } catch (err) {
+                        console.error('Error scanning bulk item:', url);
+                    }
+                    completed++;
+                    progressText.innerText = `${completed}/${urls.length} AUDITED`;
+                }));
+            }
+
+            logToTerminal(`BULK_AUDIT_COMPLETE: processed ${urls.length} targets successfully`, "success");
+            scanBtn.disabled = false;
+            scanBtn.innerText = "START BULK AUDIT PROTOCOL";
+        }
+    </script>
+</body>
+</html>

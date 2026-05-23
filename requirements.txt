@@ -1,0 +1,12 @@
+flask
+flask-caching
+pandas
+numpy
+joblib
+scikit-learn
+xgboost
+python-dotenv
+requests
+whois
+dnspython
+shap
