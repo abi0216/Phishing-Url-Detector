@@ -1,12 +1,17 @@
-flask
-flask-caching
-pandas
-numpy
-joblib
-scikit-learn
-xgboost
-python-dotenv
-requests
-whois
-dnspython
-shap
+# --- Core Web & Server Framework ---
+flask>=2.3.0
+flask-caching>=2.0.0
+python-dotenv>=1.0.0
+
+# --- Scientific Computing & Machine Learning ---
+numpy>=1.24.0
+pandas>=2.0.0
+scikit-learn>=1.2.0
+xgboost>=1.7.0
+joblib>=1.2.0
+shap>=0.42.0
+
+# --- Networking, DNS & Telemetry APIs ---
+requests>=2.31.0
+python-whois>=0.8.0
+dnspython>=2.3.0

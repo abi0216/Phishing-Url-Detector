@@ -1,0 +1,9 @@
+# --- Developer & Testing Environment ---
+-r requirements.txt
+
+# --- Testing Framework ---
+pytest>=7.3.0
+pytest-flask>=1.2.0
+pytest-cov>=4.1.0
+pytest-benchmark>=4.0.0
+requests-mock>=1.11.0
