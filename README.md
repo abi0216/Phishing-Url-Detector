@@ -26,9 +26,12 @@ This project follows the **Model-View-Controller (MVC)** pattern, which is the i
 4.  **Security**: sensitive information (like API keys) is centralized in `.env` and `config/` rather than hardcoded in files.
 
 ![image alt](https://github.com/abi0216/Phishing-Url-Detector/blob/e501147152381e35d558c74002efcc6cafe26ce3/Screenshot%202026-05-23%20191908.png)
+
 ![image alt](https://github.com/abi0216/Phishing-Url-Detector/blob/228babcaeef16d754b5cc4e79957352786cd097a/Screenshot%202026-05-23%20194332.png)
 
 ![image alt](https://github.com/abi0216/Phishing-Url-Detector/blob/d09bf4e1647a61a876d223a2c3a408f8ff76e088/Screenshot%202026-05-23%20194321.png)
+
+![image alt](https://github.com/abi0216/Phishing-Url-Detector/blob/dce9e73cb528862e98984336eb70197c08ee772e/Screenshot%202026-05-23%20194441.png)
 
 
 
